@@ -237,14 +237,21 @@ function time2str(time){
 app.get('/upsertDB',
   async (req,res,next) => {
     //await Course.deleteMany({})
+      //CHEM 300 [ { start: 1200, end: 1290, days: [ 'm', 'w' ] } ]
     for (course of courses){
-      const {subject,coursenum,section,term}=course;
+      const {subject,coursenum,section,term, times}=course;
       const num = getNum(coursenum);
+      const timesArray = times2str(times);
+
+     // console.log(course.subject, num, course.times, timesSTR);
       course.num=num
-      course.suffix = coursenum.slice(num.length)
-      await Course.findOneAndUpdate({subject,coursenum,section,term},course,{upsert:true})
+      course.suffix = coursenum.slice(num.length);
+      course.strTimes = timesArray
+      await Course.findOneAndUpdate({subject,coursenum,section,term},course,{upsert:true});
+      console.log('hohoho update one course finished', course.num)
     }
     const num = await Course.find({}).count();
+    console.log('hahaha course update finished!!!!');
     res.send("data uploaded: "+num)
   }
 )
@@ -257,10 +264,21 @@ app.post('/courses/bySubject',
     const courses = await Course.find({subject:subject,independent_study:false}).sort({term:1,num:1,section:1})
     
     res.locals.courses = courses
-    res.locals.times2str = times2str
     //res.json(courses)
     res.render('courselist')
   }
+)
+app.post('/courses/byName',
+    // show list of courses in a given subject
+    async (req,res,next) => {
+        const {courseName} = req.body;
+        console.log('past coursename over', courseName)
+        const courses = await Course.find({name: {$regex : courseName }, independent_study:false}).sort({term:1,num:1,section:1})
+
+        res.locals.courses = courses
+        //res.json(courses)
+        res.render('courselist')
+    }
 )
 
 app.get('/courses/show/:courseId',
@@ -269,7 +287,7 @@ app.get('/courses/show/:courseId',
     const {courseId} = req.params;
     const course = await Course.findOne({_id:courseId})
     res.locals.course = course
-    res.locals.times2str = times2str
+
     //res.json(course)
     res.render('course')
   }
@@ -296,7 +314,6 @@ app.post('/courses/byInst',
                .sort({term:1,num:1,section:1})
     //res.json(courses)
     res.locals.courses = courses
-    res.locals.times2str = times2str
     res.render('courselist')
   }
 )
@@ -375,7 +392,7 @@ app.use(function(err, req, res, next) {
 //  Starting up the server!
 // *********************************************************** //
 //Here we set the port to use between 1024 and 65535  (2^16-1)
-const port = "5000";
+const port = "8888";
 app.set("port", port);
 
 // and now we startup the server listening on that port

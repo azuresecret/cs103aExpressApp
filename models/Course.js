@@ -5,6 +5,7 @@ const ObjectId = Schema.Types.ObjectId;
 const Mixed = Schema.Types.Mixed;
 
 var courseSchema = Schema( {
+    strTimes: [String],
     limit: Number,
     times: Mixed,
     enrolled: Number,
